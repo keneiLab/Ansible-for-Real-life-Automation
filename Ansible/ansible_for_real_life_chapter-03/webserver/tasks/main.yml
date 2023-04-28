@@ -1,0 +1,60 @@
+---
+- name: Install Apache web server
+  apt:
+    name: apache2
+    state: present
+
+- name: Start Apache web server
+  service:
+    name: apache2
+    state: started
+    enabled: yes
+
+- name: Copy index.html file
+  copy:
+    src: index.html
+    dest: /var/www/html/index.html
+  notify:
+    - Restart Apache web server
+
+- name: Set permissions on index.html
+  file:
+    path: /var/www/html/index.html
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- name: Enable Apache mod_rewrite
+  apache2_module:
+    state: present
+    name: rewrite
+  notify:
+    - Restart Apache web server
+
+- name: Configure Apache virtual host
+  template:
+    src: webserver.conf.j2
+    dest: /etc/apache2/sites-available/webserver.conf
+  notify:
+    - Restart Apache web server
+
+- name: Enable Apache virtual host
+  apache2_module:
+    state: present
+    name: vhost_alias
+  notify:
+    - Restart Apache web server
+
+- name: Enable Apache virtual host
+  apache2_vhost:
+    state: present
+    config: webserver.conf
+    filename: webserver.conf
+  notify:
+    - Restart Apache web server
+
+  handlers:
+    - name: Restart Apache web server
+      service:
+        name: apache2
+        state: restarted

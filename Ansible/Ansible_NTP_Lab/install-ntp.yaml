@@ -1,0 +1,10 @@
+---
+- name: NTP installation
+  hosts: hosts
+  tasks:
+
+    - name: NTP package installation
+      apt:
+        name: chrony
+        state: latest
+        update_cache: true
